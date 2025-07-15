@@ -82,13 +82,22 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("weishu");
 MODULE_DESCRIPTION("Android KernelSU");
 
+// 添加内核版本头文件
 #include <linux/version.h>
 
-// 如果宏未定义（如旧内核），手动定义为空，避免编译出错
+// 兼容旧内核：如果 MODULE_IMPORT_NS 没定义，就定义为空
 #ifndef MODULE_IMPORT_NS
 #define MODULE_IMPORT_NS(x)
 #endif
 
+#ifdef MODULE_IMPORT_NS
+#warning "MODULE_IMPORT_NS is defined"
+#else
+#warning "MODULE_IMPORT_NS is NOT defined"
+#endif
+
+// 仅在内核版本 >= 5.0.0 时引入 namespace（可根据你实际版本改成 5.4.0）
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
 #endif
+
