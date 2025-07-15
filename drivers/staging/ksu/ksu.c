@@ -1,34 +1,33 @@
 #include "linux/fs.h"
 #include "linux/module.h"
 #include "linux/workqueue.h"
-#include <linux/version.h>     //  必须加这个
-#ifndef MODULE_IMPORT_NS       //  提前判断宏是否存在
+#include <linux/version.h>  // 必须放前面以便下面判断内核版本
+
+// 兼容旧内核：MODULE_IMPORT_NS 可能根本没定义
+#ifndef MODULE_IMPORT_NS
 #define MODULE_IMPORT_NS(x)
 #endif
 
 #include "allowlist.h"
 #include "arch.h"
 #include "core_hook.h"
-#include "klog.h"
+#include "klog.h" // IWYU pragma: keep
 #include "ksu.h"
 #include "uid_observer.h"
 
 static struct workqueue_struct *ksu_workqueue;
 
-// 将任务加入 KernelSU 的工作队列
 bool ksu_queue_work(struct work_struct *work)
 {
 	return queue_work(ksu_workqueue, work);
 }
 
-// 外部声明的两个处理 execveat 的函数
 extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,
 					void *argv, void *envp, int *flags);
 
 extern int ksu_handle_execveat_ksud(int *fd, struct filename **filename_ptr,
 				    void *argv, void *envp, int *flags);
 
-// 调用两个处理函数执行 execveat
 int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 			void *envp, int *flags)
 {
@@ -36,11 +35,9 @@ int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,
 	return ksu_handle_execveat_sucompat(fd, filename_ptr, argv, envp, flags);
 }
 
-// 外部声明的初始化函数
 extern void ksu_enable_sucompat();
 extern void ksu_enable_ksud();
 
-// KernelSU 初始化函数
 int __init kernelsu_init(void)
 {
 #ifdef CONFIG_KSU_DEBUG
@@ -58,6 +55,7 @@ int __init kernelsu_init(void)
 	ksu_workqueue = alloc_workqueue("kernelsu_work_queue", 0, 0);
 
 	ksu_allowlist_init();
+
 	ksu_uid_observer_init();
 
 #ifdef CONFIG_KPROBES
@@ -70,7 +68,6 @@ int __init kernelsu_init(void)
 	return 0;
 }
 
-// 卸载模块时调用的退出函数
 void kernelsu_exit(void)
 {
 	ksu_allowlist_exit();
@@ -86,8 +83,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("weishu");
 MODULE_DESCRIPTION("Android KernelSU");
 
-//  宏调用一定要放在宏定义之后，否则报错
+// 只有在新内核才引入该 namespace，否则会导致语法错误
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
 #endif
-
