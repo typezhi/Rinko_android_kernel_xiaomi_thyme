@@ -1,12 +1,13 @@
+// 兼容旧内核：MODULE_IMPORT_NS 可能根本没定义
+#ifndef MODULE_IMPORT_NS
+#define MODULE_IMPORT_NS(x)
+#endif
+
 #include "linux/fs.h"
 #include "linux/module.h"
 #include "linux/workqueue.h"
 #include <linux/version.h>  // 必须放前面以便下面判断内核版本
 
-// 兼容旧内核：MODULE_IMPORT_NS 可能根本没定义
-#ifndef MODULE_IMPORT_NS
-#define MODULE_IMPORT_NS(x)
-#endif
 
 #include "allowlist.h"
 #include "arch.h"
