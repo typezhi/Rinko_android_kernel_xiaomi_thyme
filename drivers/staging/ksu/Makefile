@@ -1,4 +1,3 @@
-obj-$(CONFIG_KSU) += ksu/
 obj-y += ksu.o
 obj-y += allowlist.o
 kernelsu-objs := apk_sign.o
